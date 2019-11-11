@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow import keras
-
+import os
 import pandas as pd
 import numpy as np
 import jieba
@@ -49,7 +49,24 @@ model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-model.fit(X_train, y_train, epochs=10)
+checkpoint_path = "models/cp-{epoch:04d}.ckpt"
+checkpoint_dir = os.path.dirname(checkpoint_path)
+
+cp_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath=checkpoint_path,
+    save_weights_only=True,
+    period=5,
+    verbose=1)
+
+model.fit(X_train,
+          y_train,
+          epochs=10,
+          validation_data=(X_test, y_test),
+          callbacks=[cp_callback],
+          verbose=2)
+
+latest = tf.train.latest_checkpoint(checkpoint_dir)
+model.load_weights(latest)
 
 test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
 

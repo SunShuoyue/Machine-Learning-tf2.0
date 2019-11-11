@@ -1,8 +1,6 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import tensorflow as tf
 from tensorflow import keras
-
+import os
 import numpy as np
 import pandas as pd
 import jieba
@@ -24,15 +22,13 @@ for i in range(len(df)):
 
 dictionary = dict(zip(set(words), range(1, len(set(words)) + 1)))
 
-# 保留第一个索引
-word_index = {k:(v+3) for k,v in dictionary.items()}
+word_index = {k: (v + 3) for k, v in dictionary.items()}
 word_index["<PAD>"] = 0
 word_index["<START>"] = 1
 word_index["<UNK>"] = 2  # unknown
 word_index["<UNUSED>"] = 3
 
 reverse_word_index = dict([(value, key) for (key, value) in word_index.items()])
-
 
 classes = np.unique(df.label)
 data = np.zeros([len(X), length + 1])
@@ -44,40 +40,30 @@ for i in range(len(X)):
 np.random.shuffle(data)
 test_ratio = 0.2
 rows, variables = data[:, :-1].shape
-X_train = data[:int(rows * (1 - test_ratio)), :variables]
-y_train = data[:int(rows * (1 - test_ratio)), variables]
-X_test = data[int(rows * (1 - test_ratio)):, :variables]
-y_test = data[int(rows * (1 - test_ratio)):, variables]
+train_data = data[:int(rows * (1 - test_ratio)), :variables]
+train_labels = data[:int(rows * (1 - test_ratio)), variables]
+test_data = data[int(rows * (1 - test_ratio)):, :variables]
+test_labels = data[int(rows * (1 - test_ratio)):, variables]
 
-train_data, train_labels, test_data, test_labels = X_train, y_train, X_test, y_test
+# print("Training entries: {}, labels: {}".format(len(train_data), len(train_labels)))
+# print(train_data[0])
+# len(train_data[0]), len(train_data[1])
+# def decode_review(text):
+#     return ' '.join([reverse_word_index.get(i, '?') for i in text])
+#
+# decode_review(train_data[0])
 
+train_data = keras.preprocessing.sequence.pad_sequences(
+    train_data,
+    value=word_index["<PAD>"],
+    padding='post',
+    maxlen=length)
 
-print("Training entries: {}, labels: {}".format(len(train_data), len(train_labels)))
-
-print(train_data[0])
-
-len(train_data[0]), len(train_data[1])
-
-
-
-def decode_review(text):
-    return ' '.join([reverse_word_index.get(i, '?') for i in text])
-
-decode_review(train_data[0])
-
-train_data = keras.preprocessing.sequence.pad_sequences(train_data,
-                                                        value=word_index["<PAD>"],
-                                                        padding='post',
-                                                        maxlen=length)
-
-test_data = keras.preprocessing.sequence.pad_sequences(test_data,
-                                                       value=word_index["<PAD>"],
-                                                       padding='post',
-                                                       maxlen=length)
-
-len(train_data[0]), len(train_data[1])
-print(train_data[0])
-
+test_data = keras.preprocessing.sequence.pad_sequences(
+    test_data,
+    value=word_index["<PAD>"],
+    padding='post',
+    maxlen=length)
 
 vocab_size = len(word_index)
 
@@ -93,16 +79,28 @@ model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-history = model.fit(train_data,
-                    train_labels,
-                    epochs=40,
-                    batch_size=64,
-                    validation_data=(test_data, test_labels),
-                    verbose=1)
+checkpoint_path = "model/cp.ckpt"
+checkpoint_dir = os.path.dirname(checkpoint_path)
 
-results = model.evaluate(test_data,  test_labels, verbose=2)
+# 创建一个保存模型权重的回调
+cp_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath=checkpoint_path,
+    save_weights_only=True,
+    verbose=1)
+
+model.fit(train_data,
+          train_labels,
+          epochs=40,
+          batch_size=64,
+          validation_data=(test_data, test_labels),
+          callbacks=[cp_callback],
+          verbose=2)
+
+model.load_weights(checkpoint_path)
+
+results = model.evaluate(test_data, test_labels, verbose=2)
 
 print(results)
 
-print(np.argmax(model.predict(test_data),axis=1))
+print(np.argmax(model.predict(test_data), axis=1))
 print(test_labels)
