@@ -73,6 +73,15 @@ model.add(keras.layers.GlobalAveragePooling1D())
 model.add(keras.layers.Dense(128, activation='relu'))
 model.add(keras.layers.Dense(3, activation='softmax'))
 
+# model = tf.keras.Sequential([
+#     tf.keras.layers.Embedding(vocab_size, 64),
+#     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64,  return_sequences=True)),
+#     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32)),
+#     tf.keras.layers.Dense(64, activation='relu'),
+#     tf.keras.layers.Dropout(0.5),
+#     tf.keras.layers.Dense(3, activation='softmax')
+# ])
+
 model.summary()
 
 model.compile(optimizer='adam',
@@ -82,7 +91,6 @@ model.compile(optimizer='adam',
 checkpoint_path = "model/cp.ckpt"
 checkpoint_dir = os.path.dirname(checkpoint_path)
 
-# 创建一个保存模型权重的回调
 cp_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=checkpoint_path,
     save_weights_only=True,
