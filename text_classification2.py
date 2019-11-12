@@ -74,9 +74,9 @@ model.add(keras.layers.Dense(128, activation='relu'))
 model.add(keras.layers.Dense(3, activation='softmax'))
 
 # model = tf.keras.Sequential([
-#     tf.keras.layers.Embedding(vocab_size, 64),
-#     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64,  return_sequences=True)),
-#     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32)),
+#     tf.keras.layers.Embedding(vocab_size, 128),
+#     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128,  return_sequences=True)),
+#     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64)),
 #     tf.keras.layers.Dense(64, activation='relu'),
 #     tf.keras.layers.Dropout(0.5),
 #     tf.keras.layers.Dense(3, activation='softmax')
@@ -98,7 +98,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
 
 model.fit(train_data,
           train_labels,
-          epochs=40,
+          epochs=20,
           batch_size=64,
           validation_data=(test_data, test_labels),
           callbacks=[cp_callback],
