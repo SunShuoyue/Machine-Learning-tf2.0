@@ -6,6 +6,7 @@ from tensorflow import keras
 def norm(x):
     return (x - np.mean(x)) / np.std(x)
 
+
 # prepare data
 rows = 1000
 test_ratio = 0.2
@@ -24,6 +25,7 @@ test_data = data[int(rows * (1 - test_ratio)):, :variables]
 test_labels = data[int(rows * (1 - test_ratio)):, variables]
 
 
+# train
 def build_model():
     model = keras.Sequential([
         keras.layers.Dense(64, activation='relu', input_shape=[train_data.shape[1]]),
@@ -36,11 +38,9 @@ def build_model():
                   metrics=['mae', 'mse'])
     return model
 
+
 model = build_model()
-
 model.summary()
-
-
 model.fit(train_data,
           train_labels,
           epochs=20,
@@ -48,10 +48,8 @@ model.fit(train_data,
           validation_data=(test_data, test_labels),
           verbose=2)
 
-
+# test
 results = model.evaluate(test_data, test_labels, verbose=2)
-
 print(results)
-
 print(np.argmax(model.predict(test_data), axis=1))
 print(test_labels)
