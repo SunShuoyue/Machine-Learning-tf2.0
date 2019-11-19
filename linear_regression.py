@@ -47,9 +47,3 @@ model.fit(train_data,
           batch_size=64,
           validation_data=(test_data, test_labels),
           verbose=2)
-
-# test
-results = model.evaluate(test_data, test_labels, verbose=2)
-print(results)
-print(np.argmax(model.predict(test_data), axis=1))
-print(test_labels)
